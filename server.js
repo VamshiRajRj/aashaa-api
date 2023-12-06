@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 
 const Users = require("./models/user");
 const UserScoreSchema = require("./models/levels");
+const WordsSchema = require("./models/Words");
 
 app.use(express.json());
 
@@ -23,8 +24,13 @@ app.get("/getUser/:userId", async (req, res) => {
     if (data === null) {
       const newEntry = {
         userId: req.params.userId,
-        scores: { 1: 0 },
-        currentLevel: 1,
+        scores: {
+          physics: { 1: 0 },
+          chemistry: { 1: 0 },
+          english: { 1: 0 },
+          history: { 1: 0 },
+        },
+        currentLevel: { physics: 1, chemistry: 1, english: 1, history: 1 },
         // other fields as needed
       };
       const newData = new Users(newEntry);
@@ -37,32 +43,16 @@ app.get("/getUser/:userId", async (req, res) => {
   }
 });
 
-app.put("/updateUser/:userId", async (req, res) => {
-  try {
-    const query = { userId: req.params.userId };
-    const documentIdToUpdate = req.params.userId;
-
-    // Update the document using Mongoose
-    const result = await Users.updateOne(
-      { userId: documentIdToUpdate },
-      { $set: req.body }
-    );
-
-    return res.json(await Users.findOne(query));
-  } catch (e) {
-    console.log(e);
-  }
-});
-
 // Store user scores
 app.post("/store-score", async (req, res) => {
   try {
-    const { userId, levelId, score, scores } = req.body;
+    const { userId, levelId, score, scores, subject, currentLevels } = req.body;
 
     // Find an existing user score with the same userId and levelId
     const existingUserScore = await UserScoreSchema.findOne({
       userId,
       levelId,
+      subject,
     });
 
     if (existingUserScore) {
@@ -77,6 +67,7 @@ app.post("/store-score", async (req, res) => {
         userId,
         levelId,
         score,
+        subject,
       });
 
       // Save the user score to the database
@@ -84,11 +75,47 @@ app.post("/store-score", async (req, res) => {
     }
     await Users.updateOne(
       { userId: userId },
-      { $set: { scores: scores, currentLevel: levelId + 1 } }
+      { $set: { scores: scores, currentLevel: currentLevels } }
     );
-    const result = await UserScoreSchema.find({ levelId });
+    const result = await UserScoreSchema.find({ levelId, subject });
 
     res.status(201).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+// Store user scores
+app.post("/add-level", async (req, res) => {
+  try {
+    const { level, subject, words } = req.body;
+    // If no existing user score, create a new one
+    const newLevel = new WordsSchema({
+      level,
+      subject,
+      words,
+    });
+
+    // Save the user score to the database
+    await newLevel.save();
+
+    res.status(201).json(newLevel);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+// Fetch user scores by levelId
+app.get("/get-levels/:subject", async (req, res) => {
+  try {
+    const subject = req.params.subject;
+
+    // Find all user scores for the specified levelId
+    const levels = await WordsSchema.find({ subject });
+
+    res.status(200).json(levels);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Internal Server Error" });
@@ -111,3 +138,20 @@ app.get("/get-scores/:levelId", async (req, res) => {
 });
 
 app.listen(3000, "0.0.0.0", () => console.log("Server Running"));
+
+// app.put("/updateUser/:userId", async (req, res) => {
+//   try {
+//     const query = { userId: req.params.userId };
+//     const documentIdToUpdate = req.params.userId;
+
+//     // Update the document using Mongoose
+//     const result = await Users.updateOne(
+//       { userId: documentIdToUpdate },
+//       { $set: req.body }
+//     );
+
+//     return res.json(await Users.findOne(query));
+//   } catch (e) {
+//     console.log(e);
+//   }
+// });

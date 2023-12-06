@@ -13,6 +13,10 @@ const UserScoreSchema = mongoose.Schema({
     type: Number,
     required: true,
   },
+  subject: {
+    type: String,
+    required: true,
+  },
 });
 
 module.exports = mongoose.model("UserScore", UserScoreSchema);

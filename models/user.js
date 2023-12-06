@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const Users = mongoose.Schema({
   currentLevel: {
-    type: Number,
+    type: Object,
     required: true,
   },
   scores: {

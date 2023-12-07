@@ -1,13 +1,13 @@
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
+const cors = require("cors");
 
 const Users = require("./models/user");
 const UserScoreSchema = require("./models/levels");
 const WordsSchema = require("./models/Words");
 
-app.use(express.json());
-
+app.use(express.json(), cors());
 mongoose
   .connect(
     "mongodb+srv://v2m431raj:aashaa_0987@cluster0.o45duuo.mongodb.net/?retryWrites=true&w=majority"

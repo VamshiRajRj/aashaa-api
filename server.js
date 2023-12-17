@@ -123,12 +123,12 @@ app.get("/get-levels/:subject", async (req, res) => {
 });
 
 // Fetch user scores by levelId
-app.get("/get-scores/:levelId", async (req, res) => {
+app.get("/get-scores/:levelId/:subject", async (req, res) => {
   try {
-    const levelId = req.params.levelId;
+    const { levelId, subject } = req.params;
 
     // Find all user scores for the specified levelId
-    const scores = await UserScoreSchema.find({ levelId });
+    const scores = await UserScoreSchema.find({ levelId, subject });
 
     res.status(200).json(scores);
   } catch (err) {

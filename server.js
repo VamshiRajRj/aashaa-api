@@ -57,7 +57,7 @@ app.post("/store-score", async (req, res) => {
 
     if (existingUserScore) {
       // If the user score already exists, update the score
-      if (existingUserScore.score < score) {
+      if (existingUserScore.score > score) {
         existingUserScore.score = score;
         await existingUserScore.save();
       }
